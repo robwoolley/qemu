@@ -61,13 +61,39 @@ static int raspi_add_memory_node(void *fdt, hwaddr mem_base, hwaddr mem_len)
     return ret;
 }
 
+
+#define PCIE_ADDRESS           0x7d500000ULL
+#define PCIE_DMA_ARM_OFFSET    0x400000000ULL
+#define PCIE_DMA_OFFSET        0x00000000ULL
+#define PCIE_DMA_SIZE          0xc0000000ULL
+
 static void raspi4_modify_dtb(const struct arm_boot_info *info, void *fdt)
 {
     uint64_t ram_size = board_ram_size(info->board_id);
-
     if (info->ram_size > UPPER_RAM_BASE) {
         raspi_add_memory_node(fdt, UPPER_RAM_BASE, ram_size - UPPER_RAM_BASE);
     }
+
+    char *nodename = g_strdup_printf("/scb/pcie@%" PRIx64, (hwaddr) PCIE_ADDRESS);
+
+    uint32_t dma_ranges[7] = {
+        cpu_to_be32(0x02000000),
+        cpu_to_be32((PCIE_DMA_ARM_OFFSET >> 32) & 0xFFFFFFFF),
+        cpu_to_be32(PCIE_DMA_ARM_OFFSET & 0xFFFFFFFF),
+        cpu_to_be32((PCIE_DMA_OFFSET >> 32) & 0xFFFFFFFF),
+        cpu_to_be32(PCIE_DMA_OFFSET & 0xFFFFFFFF),
+        cpu_to_be32((PCIE_DMA_SIZE>> 32) & 0xFFFFFFFF),
+        cpu_to_be32(PCIE_DMA_SIZE & 0xFFFFFFFF)
+    };
+
+    /*
+     * Fixup dma range
+     * (see linux drivers/pci/controller/pcie-brcmstb.c brcm_pcie_get_inbound_wins()
+     * dma-ranges format: <child-bus-address>, <parent-bus-address>, <length>
+     */
+    qemu_fdt_setprop(fdt, nodename, "dma-ranges", dma_ranges, sizeof(dma_ranges));
+
+    g_free(nodename);
 }
 
 static void raspi4b_machine_init(MachineState *machine)
