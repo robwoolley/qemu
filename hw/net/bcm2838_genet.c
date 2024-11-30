@@ -1069,7 +1069,7 @@ static void bcm2838_genet_class_init(ObjectClass *class, void *data)
     DeviceClass *dc = DEVICE_CLASS(class);
 
     dc->realize = bcm2838_genet_realize;
-    dc->reset = bcm2838_genet_reset;
+    device_class_set_legacy_reset(dc, bcm2838_genet_reset);
     device_class_set_props(dc, genet_properties);
 }
 

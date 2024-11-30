@@ -383,7 +383,7 @@ static void bcm2838_rng200_class_init(ObjectClass *klass, void *data)
     DeviceClass *dc = DEVICE_CLASS(klass);
 
     dc->realize = bcm2838_rng200_realize;
-    dc->reset = bcm2838_rng200_reset;
+    device_class_set_legacy_reset(dc, bcm2838_rng200_reset);
     dc->vmsd = &vmstate_bcm2838_rng200;
 
     device_class_set_props(dc, bcm2838_rng200_properties);
