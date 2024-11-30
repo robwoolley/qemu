@@ -182,7 +182,7 @@ static uint32_t bcm2838_rng200_read_fifo_data(BCM2838Rng200State *s)
     uint32_t num = 0;
 
     while (to_read) {
-        buf = fifo8_pop_buf(fifo, to_read, &num);
+        buf = fifo8_pop_bufptr(fifo, to_read, &num);
         memcpy(p, buf, num);
         p += num;
         to_read -= num;
